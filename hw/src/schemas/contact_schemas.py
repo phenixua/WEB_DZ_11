@@ -28,7 +28,7 @@ class ContactSchema(BaseModel):
     last_name: str = Field(min_length=3, max_length=32)
     email: EmailStr = Field(min_length=8, max_length=64)
     phone_number: str = Field(max_length=24, validate=phone_number_validator)
-    birth_date: date = Field(max_length=10, validate=birth_date_validator)
+    birth_date: date = Field(validate=birth_date_validator)
     crm_status: Literal['operational', 'analitic', 'corporative'] = 'operational'
 
 
