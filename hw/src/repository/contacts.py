@@ -50,7 +50,31 @@ async def delete_contact(contact_id: int, db: AsyncSession):
     return contact
 
 
-async def search_contact(query: str, db: AsyncSession):
+async def search_contact_by_firstname(contact_first_name: str, db: AsyncSession):
+    statement = select(Contact).where(Contact.first_name.ilike(f'%{contact_first_name}%'))
+    result = await db.execute(statement)
+    if result:
+        return result.scalars().all()
+    raise HTTPException(status_code=204, detail="No Content. The Search did not get results.")
+
+
+async def search_contact_by_lastname(contact_last_name: str, db: AsyncSession):
+    statement = select(Contact).where(Contact.last_name.ilike(f'%{contact_last_name}%'))
+    result = await db.execute(statement)
+    if result:
+        return result.scalars().all()
+    raise HTTPException(status_code=204, detail="No Content. The Search did not get results.")
+
+
+async def search_contact_by_email(contact_email: str, db: AsyncSession):
+    statement = select(Contact).where(Contact.email.ilike(f'%{contact_email}%'))
+    result = await db.execute(statement)
+    if result:
+        return result.scalars().all()
+    raise HTTPException(status_code=204, detail="No Content. The Search did not get results.")
+
+
+async def search_contact_query(query: str, db: AsyncSession):
     statement = select(Contact).where(or_(
         Contact.first_name.ilike(f'%{query}%'),
         Contact.last_name.ilike(f'%{query}%'),
@@ -79,19 +103,23 @@ async def search_contact_by_birthdate(forward_shift_days: int, db: AsyncSession)
             or_(
                 and_(
                     func.extract("month", Contact.birth_date) == current_date.month,
-                    func.extract("day", Contact.birth_date) >= current_date.day
+                    func.extract("day", Contact.birth_date) >= current_date.day,
+                    func.extract("day", Contact.birth_date) <= end_of_shift_date.day
                 ),
                 and_(
-                    func.extract("month", Contact.birth_date) <= end_of_shift_date.month,
+                    func.extract("month", Contact.birth_date) == end_of_shift_date.month,
                     func.extract("day", Contact.birth_date) <= end_of_shift_date.day
-                )
+                ),
             )
         )
     )
 
     result = await db.execute(statement)
 
-    return result.scalars().all()
+    if result:
+        return result.scalars().all()
+
+    raise HTTPException(status_code=204, detail="No Content. The Search did not get results.")
 
 
 async def _get_contact_by_id(contact_id: int, db: AsyncSession):

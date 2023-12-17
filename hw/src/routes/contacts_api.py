@@ -43,7 +43,7 @@ async def delete_contact(contact_id: int = Path(ge=1), db: AsyncSession = Depend
     return contact
 
 
-router_search = APIRouter(prefix='/search', tags=['search'])
+router_search = APIRouter(prefix='/contacts/search', tags=['search'])
 
 
 @router_search.get("/by_firstname/{contact_first_name}", response_model=list[ContactResponseSchema])
@@ -67,11 +67,11 @@ async def search_contact_by_email(contact_email: str = Path(..., description="Е
     return contacts
 
 
-@router_search.get("/by_complex/{value}", response_model=list[ContactResponseSchema])
-async def search_contact_complex(
+@router_search.get("/by_query/{value}", response_model=list[ContactResponseSchema])
+async def search_contact_query(
         value: str = Path(..., description="Здійснює пошук у полях контакту: Ім'я, Прізвище та Електронна адреса"),
         db: AsyncSession = Depends(get_async_session)):
-    contacts = await rep_contacts.search_contact_complex(value, db)
+    contacts = await rep_contacts.search_contact_query(value, db)
     return contacts
 
 
