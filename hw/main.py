@@ -19,7 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(contacts_api.router, prefix="/api")
+app.include_router(contacts_api.router, prefix="/contacts", tags=["contacts"])
 
 
 @app.get("/")

@@ -8,12 +8,14 @@ from src.schemas.contact_schemas import ContactSchema
 
 async def get_contacts(limit: int, offset: int, db: AsyncSession):
     statement = select(Contact).offset(offset).limit(limit)
-    return await db.execute(statement).scalars().all()
+    result = await db.execute(statement)
+    return result.scalars().all()
 
 
 async def get_contact(contact_id: int, db: AsyncSession):
     statement = select(Contact).filter_by(id=contact_id)
-    return await db.execute(statement).scalar_one_or_none()
+    contact = await db.execute(statement)
+    return contact.scalar_one_or_none()
 
 
 async def create_contact(body: ContactSchema, db: AsyncSession):
@@ -26,7 +28,9 @@ async def create_contact(body: ContactSchema, db: AsyncSession):
 
 
 async def update_contact(contact_id: int, body: ContactSchema, db: AsyncSession):
-    contact = await _get_contact_by_id(contact_id, db)
+    statement = select(Contact).filter_by(id=contact_id)
+    result = await db.execute(statement)
+    contact = result.scalar_one_or_none()
     if contact:
         contact_data = body.dict(exclude_unset=True)
         for field, value in contact_data.items():
@@ -37,9 +41,11 @@ async def update_contact(contact_id: int, body: ContactSchema, db: AsyncSession)
 
 
 async def delete_contact(contact_id: int, db: AsyncSession):
-    contact = await _get_contact_by_id(contact_id, db)
+    statement = select(Contact).filter_by(id=contact_id)
+    contact = await db.execute(statement)
+    contact = contact.scalar_one_or_none()
     if contact:
-        db.delete(contact)
+        await db.delete(contact)
         await db.commit()
     return contact
 
@@ -57,9 +63,7 @@ async def search_contact(query: str, db: AsyncSession):
 async def search_contact_by_field(field_name: str, field_value: str, db: AsyncSession):
     statement = select(Contact).where(getattr(Contact, field_name).ilike(f'%{field_value}%'))
     result = await db.execute(statement)
-    if result:
-        return result.scalars().all()
-    raise HTTPException(status_code=204, detail="No Content. The Search did not get results.")
+    return result.scalars().all()
 
 
 async def search_contact_by_birthdate(forward_shift_days: int, db: AsyncSession):
@@ -87,12 +91,10 @@ async def search_contact_by_birthdate(forward_shift_days: int, db: AsyncSession)
 
     result = await db.execute(statement)
 
-    if result:
-        return result.scalars().all()
-
-    raise HTTPException(status_code=204, detail="No Content. The Search did not get results.")
+    return result.scalars().all()
 
 
 async def _get_contact_by_id(contact_id: int, db: AsyncSession):
     statement = select(Contact).filter_by(id=contact_id)
-    return await db.execute(statement).scalar_one_or_none()
+    result = await db.execute(statement)
+    return await result.scalar_one_or_none()

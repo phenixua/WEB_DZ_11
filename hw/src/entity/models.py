@@ -13,3 +13,4 @@ class Contact(Base):
     birth_date = Column(Date, nullable=False, index=True)
     phone_number = Column(String(24), nullable=False, index=True)
     email = Column(String(64), unique=True, nullable=False, index=True)
+
